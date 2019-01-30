@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * UrlMethodMapping的工厂类
@@ -44,63 +45,54 @@ public class UrlMethodMappingFactory {
         JSONObject jsonObject = JSONObject.parseObject(json);
         String url = jsonObject.getString(URL);
         String method = jsonObject.getString(METHOD);
-        String objectClass = jsonObject.getString(CLASS);
-        JSONArray array = jsonObject.getJSONArray(REQUEST_TYPE);
+        String className = jsonObject.getString(CLASS);
         //请求类型
-        Assert.notNull(array, REQUEST_TYPE + "节点不存在！");
-        Assert.isTrue(array.size() > 0, REQUEST_TYPE + "节点缺少配置！");
-        String[] types = new String[array.size()];
-        for (int i = 0; i < array.size(); i++) {
-            types[i] = array.getString(i);
-        }
+        JSONArray requestType = jsonObject.getJSONArray(REQUEST_TYPE);
+        Assert.notNull(requestType, REQUEST_TYPE + "节点不存在！");
+        Assert.isTrue(requestType.size() > 0, REQUEST_TYPE + "节点缺少配置！");
+        String[] types = jsonArrayToArray(requestType);
         //数据类型
         JSONArray jsonParamTypes = jsonObject.getJSONArray(PARAM_TYPES);
-        String[] paramTypes = new String[jsonParamTypes.size()];
-        for (int i = 0; i < jsonParamTypes.size(); i++) {
-            paramTypes[i] = jsonParamTypes.getString(i);
-        }
-        return getUrlMethodMapping(url, types, objectClass, method, paramTypes);
+        String[] paramTypes = jsonArrayToArray(jsonParamTypes);
+        return getUrlMethodMapping(url, types, className, method, paramTypes);
     }
 
+    /**
+     * @param url             请求地址
+     * @param requestTypes    请求方式
+     * @param className       实例对象
+     * @param method          url对应的方法
+     * @param paramClassNames 请求参数类型
+     * @return
+     */
     private UrlMethodMapping getUrlMethodMapping(
-            String url, String[] requestTypes, String objectClass, String method, String[] paramTypes
+            String url, String[] requestTypes, String className, String method, String[] paramClassNames
     ) {
-        Class aClass = ClassUtils.forName(objectClass);
-        Assert.notNull(aClass, objectClass + "不存在！");
-        int length = paramTypes.length;
-        //组装参数
-        Class[] paramclasses = new Class[length];
-        for (int i = 0; i < length; i++) {
-            String paramType = paramTypes[i];
-            Class paramClass = ClassUtils.getBaseClassByName(paramType);
-            if (paramClass == null) {
-                paramClass = ClassUtils.forName(paramType);
-            }
-            Assert.notNull(paramClass, "参数类型：" + paramType + " 加载失败！");
-            paramclasses[i] = paramClass;
-        }
+        //class
+        Class objectClass = ClassUtils.forName(className);
+        Assert.notNull(objectClass, className + "不存在！");
+        //请求方式
+        RequestType[] types = getRequestTypes(requestTypes);
+        //参数类型
+        Class[] paramCLasses = getParamCLasses(paramClassNames);
+        //class实例化对象
+        Object object = objectFactory.getObject(objectClass);
+        Assert.notNull(object, "objectFactory.getObject(" + className + ") 获取失败！");
         //获取方法
-        Method aMethod = ClassUtils.getMethod(aClass, method, paramclasses);
-        Assert.notNull(
-                aMethod,
-                "方法：" + objectClass + "." + method + "(" + String.join("，", paramTypes) + ") 不存在！"
-        );
-        //获取object
-        Object object = objectFactory.getObject(aClass);
-        Assert.notNull(object, "objectFactory.getObject(" + objectClass + ") 获取失败！");
+        Method aMethod = ClassUtils.getMethod(objectClass, method, paramCLasses);
+        Assert.notNull(aMethod, "方法：" + className + "." + method + Arrays.toString(paramClassNames) + " 不存在！");
         //获取参数名称
         String[] paramNames = paramNameGetter.getParamNames(aMethod);
         Assert.notNull(paramNames, "paramNameGetter.getParamNames(" + method + ") 执行失败！");
-        Assert.isTrue(paramNames.length == length, "方法名称取出异常 methodName：" + objectClass);
-        //请求类型
-        RequestType[] types = getRequestTypes(requestTypes);
+        Assert.isTrue(paramNames.length == paramClassNames.length, "方法名称取出异常 methodName：" + className);
+        //组装参数
         UrlMethodMapping mapping = new UrlMethodMapping();
         mapping.setMethod(aMethod);
         mapping.setUrl(url);
         mapping.setRequestTypes(types);
         mapping.setObject(object);
-        mapping.setParamClasses(paramclasses);
-        mapping.setObjectClass(aClass);
+        mapping.setParamClasses(paramCLasses);
+        mapping.setObjectClass(objectClass);
         mapping.setParamNames(paramNames);
         return mapping;
     }
@@ -127,5 +119,40 @@ public class UrlMethodMappingFactory {
             }
         }
         return types;
+    }
+
+    /**
+     * 将className的数组转转换为Class对象数组
+     *
+     * @param paramTypes
+     * @return
+     */
+    Class[] getParamCLasses(String[] paramTypes) {
+        Class[] paramclasses = new Class[paramTypes.length];
+        for (int i = 0; i < paramTypes.length; i++) {
+            String paramType = paramTypes[i];
+            Class paramClass = ClassUtils.getBaseClassByName(paramType);
+            if (paramClass == null) {
+                paramClass = ClassUtils.forName(paramType);
+            }
+            Assert.notNull(paramClass, "参数类型：" + paramType + " 加载失败！");
+            paramclasses[i] = paramClass;
+        }
+        return paramclasses;
+    }
+
+    /**
+     * json数组转换数组
+     *
+     * @param jsonArray
+     * @return
+     */
+    String[] jsonArrayToArray(JSONArray jsonArray) {
+        Assert.notNull(jsonArray);
+        String[] array = new String[jsonArray.size()];
+        for (int i = 0; i < jsonArray.size(); i++) {
+            array[i] = jsonArray.getString(i);
+        }
+        return array;
     }
 }
