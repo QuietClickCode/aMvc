@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 public class UrlMethodMappingFactory {
 
     private static final String URL = "url";
+    private static final String REQUEST_TYPE = "type";
     private static final String METHOD = "method";
     private static final String CLASS = "objectClass";
     private static final String PARAM_TYPES = "paramTypes";
@@ -44,16 +45,26 @@ public class UrlMethodMappingFactory {
         String url = jsonObject.getString(URL);
         String method = jsonObject.getString(METHOD);
         String objectClass = jsonObject.getString(CLASS);
+        JSONArray array = jsonObject.getJSONArray(REQUEST_TYPE);
+        //请求类型
+        Assert.notNull(array, REQUEST_TYPE + "节点不存在！");
+        Assert.isTrue(array.size() > 0, REQUEST_TYPE + "节点缺少配置！");
+        String[] types = new String[array.size()];
+        for (int i = 0; i < array.size(); i++) {
+            types[i] = array.getString(i);
+        }
+        //数据类型
         JSONArray jsonParamTypes = jsonObject.getJSONArray(PARAM_TYPES);
         String[] paramTypes = new String[jsonParamTypes.size()];
-
         for (int i = 0; i < jsonParamTypes.size(); i++) {
             paramTypes[i] = jsonParamTypes.getString(i);
         }
-        return getUrlMethodMapping(objectClass, method, url, paramTypes);
+        return getUrlMethodMapping(url, types, objectClass, method, paramTypes);
     }
 
-    private UrlMethodMapping getUrlMethodMapping(String objectClass, String method, String url, String[] paramTypes) {
+    private UrlMethodMapping getUrlMethodMapping(
+            String url, String[] requestTypes, String objectClass, String method, String[] paramTypes
+    ) {
         Class aClass = ClassUtils.forName(objectClass);
         Assert.notNull(aClass, objectClass + "不存在！");
         int length = paramTypes.length;
@@ -81,9 +92,12 @@ public class UrlMethodMappingFactory {
         String[] paramNames = paramNameGetter.getParamNames(aMethod);
         Assert.notNull(paramNames, "paramNameGetter.getParamNames(" + method + ") 执行失败！");
         Assert.isTrue(paramNames.length == length, "方法名称取出异常 methodName：" + objectClass);
+        //请求类型
+        RequestType[] types = getRequestTypes(requestTypes);
         UrlMethodMapping mapping = new UrlMethodMapping();
         mapping.setMethod(aMethod);
         mapping.setUrl(url);
+        mapping.setRequestTypes(types);
         mapping.setObject(object);
         mapping.setParamClasses(paramclasses);
         mapping.setObjectClass(aClass);
@@ -91,4 +105,27 @@ public class UrlMethodMappingFactory {
         return mapping;
     }
 
+    /**
+     * 从配置文件中获取的字符串类型转换位枚举类型
+     *
+     * @param requestTypes
+     * @return
+     */
+    RequestType[] getRequestTypes(String[] requestTypes) {
+        RequestType[] types = new RequestType[requestTypes.length];
+        for (int i = 0; i < requestTypes.length; i++) {
+            if (RequestType.DELETE.name().equalsIgnoreCase(requestTypes[i])) {
+                types[i] = RequestType.DELETE;
+            } else if (RequestType.PUT.name().equalsIgnoreCase(requestTypes[i])) {
+                types[i] = RequestType.PUT;
+            } else if (RequestType.POST.name().equalsIgnoreCase(requestTypes[i])) {
+                types[i] = RequestType.POST;
+            } else if (RequestType.GET.name().equalsIgnoreCase(requestTypes[i])) {
+                types[i] = RequestType.GET;
+            } else {
+                throw new UnsupportedOperationException("不支持的请求格式：'" + requestTypes[i] + "'");
+            }
+        }
+        return types;
+    }
 }

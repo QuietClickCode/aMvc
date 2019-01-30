@@ -32,12 +32,26 @@ public class UrlMethodMapping {
      */
     private Object object;
 
+    /**
+     * method的所属class
+     */
     private Class objectClass;
 
+    /**
+     * url 对应的method
+     */
     private Method method;
 
+    /**
+     * method 的入参名称
+     * 顺序要保持一致
+     */
     private String[] paramNames;
 
+    /**
+     * method 的入参类型
+     * 顺序要保持一致
+     */
     private Class[] paramClasses;
 
 }
