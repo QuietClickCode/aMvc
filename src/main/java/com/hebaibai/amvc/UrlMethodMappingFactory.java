@@ -20,10 +20,11 @@ import java.util.Arrays;
 public class UrlMethodMappingFactory {
 
     private static final String URL = "url";
-    private static final String REQUEST_TYPE = "type";
+    private static final String REQUEST_TYPE = "requestType";
     private static final String METHOD = "method";
     private static final String CLASS = "objectClass";
     private static final String PARAM_TYPES = "paramTypes";
+    private static final String NOT_FIND = "缺少配置！";
 
     /**
      * 用于根据class实例化对象.
@@ -61,37 +62,56 @@ public class UrlMethodMappingFactory {
      * @param url             请求地址
      * @param requestTypes    请求方式
      * @param className       实例对象
+     * @param methodName      url对应的方法
+     * @param paramClassNames 请求参数类型
+     * @return
+     */
+    private UrlMethodMapping getUrlMethodMapping(
+            String url, String[] requestTypes, String className, String methodName, String[] paramClassNames
+    ) {
+        //class
+        Class objectClass = ClassUtils.forName(className);
+        //请求方式
+        RequestType[] types = getRequestTypes(requestTypes);
+        //参数类型
+        Class[] paramCLasses = getParamCLasses(paramClassNames);
+        //获取方法
+        Method method = ClassUtils.getMethod(objectClass, methodName, paramCLasses);
+        return getUrlMethodMapping(url, types, objectClass, method, paramCLasses);
+    }
+
+    /**
+     * @param url             请求地址
+     * @param requestTypes    请求方式
+     * @param objectClass     实例对象
      * @param method          url对应的方法
      * @param paramClassNames 请求参数类型
      * @return
      */
     private UrlMethodMapping getUrlMethodMapping(
-            String url, String[] requestTypes, String className, String method, String[] paramClassNames
+            String url, RequestType[] requestTypes, Class objectClass, Method method, Class[] paramClassNames
     ) {
-        //class
-        Class objectClass = ClassUtils.forName(className);
-        Assert.notNull(objectClass, className + "不存在！");
-        //请求方式
-        RequestType[] types = getRequestTypes(requestTypes);
-        //参数类型
-        Class[] paramCLasses = getParamCLasses(paramClassNames);
+        Assert.notNull(url, URL + NOT_FIND);
+        Assert.notNull(requestTypes, REQUEST_TYPE + NOT_FIND);
+        Assert.isTrue(requestTypes.length > 0, REQUEST_TYPE + NOT_FIND);
+        Assert.notNull(objectClass, CLASS + NOT_FIND);
+        Assert.notNull(method, METHOD + NOT_FIND);
+        Assert.notNull(paramClassNames, PARAM_TYPES + NOT_FIND);
+
         //class实例化对象
         Object object = objectFactory.getObject(objectClass);
-        Assert.notNull(object, "objectFactory.getObject(" + className + ") 获取失败！");
-        //获取方法
-        Method aMethod = ClassUtils.getMethod(objectClass, method, paramCLasses);
-        Assert.notNull(aMethod, "方法：" + className + "." + method + Arrays.toString(paramClassNames) + " 不存在！");
+        Assert.notNull(object, "objectFactory.getObject() 获取失败！objectClass：" + objectClass.getName());
         //获取参数名称
-        String[] paramNames = paramNameGetter.getParamNames(aMethod);
-        Assert.notNull(paramNames, "paramNameGetter.getParamNames(" + method + ") 执行失败！");
-        Assert.isTrue(paramNames.length == paramClassNames.length, "方法名称取出异常 methodName：" + className);
+        String[] paramNames = paramNameGetter.getParamNames(method);
+        Assert.notNull(paramNames, "paramNameGetter.getParamNames() 执行失败！method：" + method.getName());
+        Assert.isTrue(paramNames.length == paramClassNames.length, "方法名称取出异常 method：" + method.getName());
         //组装参数
         UrlMethodMapping mapping = new UrlMethodMapping();
-        mapping.setMethod(aMethod);
+        mapping.setMethod(method);
         mapping.setUrl(url);
-        mapping.setRequestTypes(types);
+        mapping.setRequestTypes(requestTypes);
         mapping.setObject(object);
-        mapping.setParamClasses(paramCLasses);
+        mapping.setParamClasses(paramClassNames);
         mapping.setObjectClass(objectClass);
         mapping.setParamNames(paramNames);
         return mapping;
