@@ -15,6 +15,12 @@ import java.util.List;
  */
 public class AsmParamNameGetter implements ParamNameGetter {
 
+    /**
+     * 通过asm获取method的入参名称
+     *
+     * @param method
+     * @return
+     */
     @Override
     public String[] getParamNames(Method method) {
         Assert.notNull(method);
@@ -34,7 +40,9 @@ public class AsmParamNameGetter implements ParamNameGetter {
         }
         //暂存参数名称
         List<String> paramNameList = new ArrayList<>();
-        MethodParamNameClassVisitor myClassVisitor = new MethodParamNameClassVisitor(paramNameList, methodName, paramClasses);
+        MethodParamNameClassVisitor myClassVisitor = new MethodParamNameClassVisitor(
+                paramNameList, methodName, paramClasses
+        );
         classReader.accept(myClassVisitor, 0);
         return paramNameList.toArray(new String[]{});
     }

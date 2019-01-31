@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 /**
  * UrlMethodMapping的工厂类
@@ -81,22 +80,22 @@ public class UrlMethodMappingFactory {
     }
 
     /**
-     * @param url             请求地址
-     * @param requestTypes    请求方式
-     * @param objectClass     实例对象
-     * @param method          url对应的方法
-     * @param paramClassNames 请求参数类型
+     * @param url          请求地址
+     * @param requestTypes http请求方式
+     * @param objectClass  实例对象的Class
+     * @param method       url对应的方法
+     * @param paramClasses 请求参数类型
      * @return
      */
-    private UrlMethodMapping getUrlMethodMapping(
-            String url, RequestType[] requestTypes, Class objectClass, Method method, Class[] paramClassNames
+    public UrlMethodMapping getUrlMethodMapping(
+            String url, RequestType[] requestTypes, Class objectClass, Method method, Class[] paramClasses
     ) {
         Assert.notNull(url, URL + NOT_FIND);
         Assert.notNull(requestTypes, REQUEST_TYPE + NOT_FIND);
         Assert.isTrue(requestTypes.length > 0, REQUEST_TYPE + NOT_FIND);
         Assert.notNull(objectClass, CLASS + NOT_FIND);
         Assert.notNull(method, METHOD + NOT_FIND);
-        Assert.notNull(paramClassNames, PARAM_TYPES + NOT_FIND);
+        Assert.notNull(paramClasses, PARAM_TYPES + NOT_FIND);
 
         //class实例化对象
         Object object = objectFactory.getObject(objectClass);
@@ -104,14 +103,14 @@ public class UrlMethodMappingFactory {
         //获取参数名称
         String[] paramNames = paramNameGetter.getParamNames(method);
         Assert.notNull(paramNames, "paramNameGetter.getParamNames() 执行失败！method：" + method.getName());
-        Assert.isTrue(paramNames.length == paramClassNames.length, "方法名称取出异常 method：" + method.getName());
+        Assert.isTrue(paramNames.length == paramClasses.length, "方法名称取出异常 method：" + method.getName());
         //组装参数
         UrlMethodMapping mapping = new UrlMethodMapping();
         mapping.setMethod(method);
         mapping.setUrl(url);
         mapping.setRequestTypes(requestTypes);
         mapping.setObject(object);
-        mapping.setParamClasses(paramClassNames);
+        mapping.setParamClasses(paramClasses);
         mapping.setObjectClass(objectClass);
         mapping.setParamNames(paramNames);
         return mapping;

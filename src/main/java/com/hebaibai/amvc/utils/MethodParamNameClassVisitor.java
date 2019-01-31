@@ -5,7 +5,7 @@ import org.objectweb.asm.*;
 import java.util.List;
 
 /**
- * asn class访问器
+ * asm class访问器
  * 用于提取方法的实际参数名称
  *
  * @author hjx
@@ -28,12 +28,16 @@ public class MethodParamNameClassVisitor extends ClassVisitor {
     private Class[] patamTypes;
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+    public MethodVisitor visitMethod(
+            int access, String name, String descriptor, String signature, String[] exceptions
+    ) {
         MethodVisitor visitMethod = super.visitMethod(access, name, descriptor, signature, exceptions);
         boolean sameMethod = sameMethod(name, methodName, descriptor, patamTypes);
         //如果是相同的方法, 执行取参数名称的操作
         if (sameMethod) {
-            MethodParamNameMethodVisitor paramNameMethodVisitor = new MethodParamNameMethodVisitor(Opcodes.ASM4, visitMethod);
+            MethodParamNameMethodVisitor paramNameMethodVisitor = new MethodParamNameMethodVisitor(
+                    Opcodes.ASM4, visitMethod
+            );
             paramNameMethodVisitor.paramNames = this.paramNames;
             paramNameMethodVisitor.paramLength = this.patamTypes.length;
             return paramNameMethodVisitor;
@@ -112,7 +116,9 @@ class MethodParamNameMethodVisitor extends MethodVisitor {
     int paramLength;
 
     @Override
-    public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
+    public void visitLocalVariable(
+            String name, String descriptor, String signature, Label start, Label end, int index
+    ) {
         super.visitLocalVariable(name, descriptor, signature, start, end, index);
         //index 为0 时, name是this
         //根据方法实际参数长度截取参数名称
