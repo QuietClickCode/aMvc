@@ -1,4 +1,4 @@
-package com.hebaibai.amvc;
+package com.hebaibai.amvc.namegetter;
 
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.MethodParamNameClassVisitor;

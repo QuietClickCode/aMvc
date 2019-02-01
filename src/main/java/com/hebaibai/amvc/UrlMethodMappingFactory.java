@@ -2,6 +2,7 @@ package com.hebaibai.amvc;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.hebaibai.amvc.namegetter.ParamNameGetter;
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.ClassUtils;
 import lombok.Getter;

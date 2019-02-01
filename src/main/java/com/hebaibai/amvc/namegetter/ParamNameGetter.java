@@ -1,9 +1,10 @@
-package com.hebaibai.amvc;
+package com.hebaibai.amvc.namegetter;
 
 import java.lang.reflect.Method;
 
 /**
  * 用于从方法中获取参数名称
+ *
  * @author hjx
  */
 public interface ParamNameGetter {
