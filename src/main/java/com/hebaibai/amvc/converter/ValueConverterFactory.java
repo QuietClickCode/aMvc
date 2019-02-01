@@ -3,11 +3,17 @@ package com.hebaibai.amvc.converter;
 import com.hebaibai.amvc.utils.ClassUtils;
 
 /**
- * 数据转换工厂类
+ * 数据转换器工厂类
  */
 public class ValueConverterFactory {
 
+    /**
+     * 基本数据类型的数据转换
+     */
     private static final ValueConverter BASE_TYPE_VALUE_CONVERTER = new BaseTypeValueConverter();
+    /**
+     * 基本类型数组的数据转换
+     */
     private static final ValueConverter BASE_TYPE_ARRAY_VALUE_CONVERTER = new BaseTypeArrayValueConverter();
 
     /**

@@ -14,7 +14,7 @@ public class ClassUtils {
     /**
      * java 基本类型
      */
-    public static List<Class> JAVA_CLASS_LIST = new ArrayList<>();
+    public static List<Class> JAVA_BASE_TYPE_LIST = new ArrayList<>();
 
     public final static Class INT_CLASS = int.class;
     public final static Class LONG_CLASS = long.class;
@@ -36,39 +36,24 @@ public class ClassUtils {
 
     static {
         //基本数据类型
-        JAVA_CLASS_LIST.add(INT_CLASS);
-        JAVA_CLASS_LIST.add(LONG_CLASS);
-        JAVA_CLASS_LIST.add(FLOAT_CLASS);
-        JAVA_CLASS_LIST.add(DOUBLE_CLASS);
-        JAVA_CLASS_LIST.add(SHORT_CLASS);
-        JAVA_CLASS_LIST.add(BYTE_CLASS);
-        JAVA_CLASS_LIST.add(BOOLEAN_CLASS);
-        JAVA_CLASS_LIST.add(CHAR_CLASS);
+        JAVA_BASE_TYPE_LIST.add(INT_CLASS);
+        JAVA_BASE_TYPE_LIST.add(LONG_CLASS);
+        JAVA_BASE_TYPE_LIST.add(FLOAT_CLASS);
+        JAVA_BASE_TYPE_LIST.add(DOUBLE_CLASS);
+        JAVA_BASE_TYPE_LIST.add(SHORT_CLASS);
+        JAVA_BASE_TYPE_LIST.add(BYTE_CLASS);
+        JAVA_BASE_TYPE_LIST.add(BOOLEAN_CLASS);
+        JAVA_BASE_TYPE_LIST.add(CHAR_CLASS);
         //基本数据类型（对象）
-        JAVA_CLASS_LIST.add(STRING_CLASS);
-        JAVA_CLASS_LIST.add(INT_WRAP_CLASS);
-        JAVA_CLASS_LIST.add(LONG_WRAP_CLASS);
-        JAVA_CLASS_LIST.add(FLOAT_WRAP_CLASS);
-        JAVA_CLASS_LIST.add(DOUBLE_WRAP_CLASS);
-        JAVA_CLASS_LIST.add(SHORT_WRAP_CLASS);
-        JAVA_CLASS_LIST.add(BOOLEAN_WRAP_CLASS);
-        JAVA_CLASS_LIST.add(BYTE_WRAP_CLASS);
-        JAVA_CLASS_LIST.add(CHAR_WRAP_CLASS);
-    }
-
-    /**
-     * 找到基本的数据类型Class
-     *
-     * @param className
-     * @return
-     */
-    public static Class getBaseClassByName(String className) {
-        for (Class aClass : JAVA_CLASS_LIST) {
-            if (aClass.getName().equals(className)) {
-                return aClass;
-            }
-        }
-        return null;
+        JAVA_BASE_TYPE_LIST.add(STRING_CLASS);
+        JAVA_BASE_TYPE_LIST.add(INT_WRAP_CLASS);
+        JAVA_BASE_TYPE_LIST.add(LONG_WRAP_CLASS);
+        JAVA_BASE_TYPE_LIST.add(FLOAT_WRAP_CLASS);
+        JAVA_BASE_TYPE_LIST.add(DOUBLE_WRAP_CLASS);
+        JAVA_BASE_TYPE_LIST.add(SHORT_WRAP_CLASS);
+        JAVA_BASE_TYPE_LIST.add(BOOLEAN_WRAP_CLASS);
+        JAVA_BASE_TYPE_LIST.add(BYTE_WRAP_CLASS);
+        JAVA_BASE_TYPE_LIST.add(CHAR_WRAP_CLASS);
     }
 
     /**
@@ -78,8 +63,23 @@ public class ClassUtils {
      * @return
      */
     public static boolean isBaseClass(Class aClass) {
-        int indexOf = JAVA_CLASS_LIST.indexOf(aClass);
+        int indexOf = JAVA_BASE_TYPE_LIST.indexOf(aClass);
         return indexOf != -1;
+    }
+
+    /**
+     * 找到基本的数据类型Class
+     *
+     * @param className
+     * @return
+     */
+    public static Class getBaseClassByName(String className) {
+        for (Class aClass : JAVA_BASE_TYPE_LIST) {
+            if (aClass.getName().equals(className)) {
+                return aClass;
+            }
+        }
+        return null;
     }
 
     /**

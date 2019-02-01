@@ -11,7 +11,7 @@ public class BaseTypeValueConverterTest {
     @Test
     public void converter() {
 
-        for (Class aClass : ClassUtils.JAVA_CLASS_LIST) {
+        for (Class aClass : ClassUtils.JAVA_BASE_TYPE_LIST) {
             try {
                 Object value = baseTypeValueConverter.converter(new String[]{"何嘉旋"}, aClass);
                 System.out.println("目标：" + aClass.getName() + " 结果：" + value.getClass() + " 值：" + value);
