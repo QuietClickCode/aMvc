@@ -8,7 +8,7 @@ public class ClassUtilsTest {
 
     @Test
     public void name() throws ClassNotFoundException {
-
         Class<?> aClass = Class.forName(HttpServletRequest.class.getName());
+
     }
 }

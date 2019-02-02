@@ -3,6 +3,7 @@ package com.hebaibai.amvc;
 import com.hebaibai.amvc.converter.ValueConverter;
 import com.hebaibai.amvc.converter.ValueConverterFactory;
 import com.hebaibai.amvc.utils.Assert;
+import lombok.NonNull;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
@@ -25,7 +26,7 @@ public class MethodValueGetter {
      * @param httpServletRequest
      * @return
      */
-    public Object[] getMethodValue(Class[] valueTypes, String[] valueNames, HttpServletRequest httpServletRequest) {
+    public Object[] getMethodValue(@NonNull Class[] valueTypes, @NonNull String[] valueNames, @NonNull HttpServletRequest httpServletRequest) {
         Enumeration parameterNames = httpServletRequest.getParameterNames();
         Map<String, String[]> httpValue = new HashMap<>();
         while (parameterNames.hasMoreElements()) {
@@ -43,12 +44,12 @@ public class MethodValueGetter {
      * @param valueSource
      * @return
      */
-    public Object[] getMethodValue(Class[] valueTypes, String[] valueNames, Map<String, String[]> valueSource) {
-        Assert.notNull(valueTypes);
-        Assert.notNull(valueNames);
-        Assert.notNull(valueSource);
-        Assert.isTrue(valueNames.length == valueTypes.length,
-                "getMethodValue() 参数长度不一致！");
+    public Object[] getMethodValue(
+            @NonNull Class[] valueTypes,
+            @NonNull String[] valueNames,
+            @NonNull Map<String, String[]> valueSource
+    ) {
+        Assert.isTrue(valueNames.length == valueTypes.length, "getMethodValue() 参数长度不一致！");
         int length = valueNames.length;
         Object[] values = new Object[length];
         for (int i = 0; i < values.length; i++) {

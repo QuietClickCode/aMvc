@@ -1,6 +1,7 @@
 package com.hebaibai.amvc;
 
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -12,10 +13,8 @@ import java.lang.reflect.Method;
  *
  * @author hjx
  */
-@ToString
-@Setter
-@Getter
-public class UrlMethodMapping {
+public @Data
+class UrlMethodMapping {
 
     /**
      * 请求地址
@@ -27,10 +26,6 @@ public class UrlMethodMapping {
      */
     private RequestType[] requestTypes;
 
-    /**
-     * 请求方法所属class实例
-     */
-    private Object object;
 
     /**
      * method的所属class
@@ -53,5 +48,6 @@ public class UrlMethodMapping {
      * 顺序要保持一致
      */
     private Class[] paramClasses;
+
 
 }

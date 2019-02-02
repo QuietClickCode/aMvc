@@ -2,6 +2,7 @@ package com.hebaibai.amvc.converter;
 
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.ClassUtils;
+import lombok.NonNull;
 
 /**
  * 基本数据类型的转换
@@ -19,8 +20,10 @@ public class BaseTypeValueConverter implements ValueConverter {
      * @return
      */
     @Override
-    public <T> T converter(String[] value, Class<T> valueClass) {
-        Assert.notNull(value);
+    public <T> T converter(
+            @NonNull String[] value,
+            @NonNull Class<T> valueClass
+    ) {
         Assert.isTrue(!valueClass.isArray(), "valueClass 不能是数组类型！");
         String val = value[0];
         Assert.notNull(val);

@@ -1,5 +1,7 @@
 package com.hebaibai.amvc.utils;
 
+import lombok.NonNull;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +64,7 @@ public class ClassUtils {
      * @param aClass
      * @return
      */
-    public static boolean isBaseClass(Class aClass) {
+    public static boolean isBaseClass(@NonNull Class aClass) {
         int indexOf = JAVA_BASE_TYPE_LIST.indexOf(aClass);
         return indexOf != -1;
     }
@@ -73,7 +75,7 @@ public class ClassUtils {
      * @param className
      * @return
      */
-    public static Class getBaseClassByName(String className) {
+    public static Class getBaseClassByName(@NonNull String className) {
         for (Class aClass : JAVA_BASE_TYPE_LIST) {
             if (aClass.getName().equals(className)) {
                 return aClass;
@@ -88,8 +90,7 @@ public class ClassUtils {
      * @param className
      * @return
      */
-    public static Class forName(String className) {
-        Assert.notNull(className);
+    public static Class forName(@NonNull String className) {
         try {
             Class<?> aClass = Class.forName(className);
             return aClass;
@@ -106,10 +107,7 @@ public class ClassUtils {
      * @param parameterTypes
      * @return
      */
-    public static Method getMethod(Class aClass, String methodName, Class[] parameterTypes) {
-        Assert.notNull(aClass);
-        Assert.notNull(methodName);
-        Assert.notNull(parameterTypes);
+    public static Method getMethod(@NonNull Class aClass, @NonNull String methodName, @NonNull Class[] parameterTypes) {
         try {
             Method aClassMethod = aClass.getMethod(methodName, parameterTypes);
             return aClassMethod;

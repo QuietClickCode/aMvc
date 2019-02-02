@@ -3,9 +3,12 @@ package com.hebaibai.amvc;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hebaibai.amvc.namegetter.ParamNameGetter;
+import com.hebaibai.amvc.objectfactory.ObjectFactory;
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.ClassUtils;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 import java.lang.reflect.Method;
@@ -15,9 +18,8 @@ import java.lang.reflect.Method;
  *
  * @author hjx
  */
-@Getter
-@Setter
-public class UrlMethodMappingFactory {
+public @Data
+class UrlMethodMappingFactory {
 
     private static final String URL = "url";
     private static final String REQUEST_TYPE = "requestType";
@@ -25,11 +27,6 @@ public class UrlMethodMappingFactory {
     private static final String CLASS = "objectClass";
     private static final String PARAM_TYPES = "paramTypes";
     private static final String NOT_FIND = "缺少配置！";
-
-    /**
-     * 用于根据class实例化对象.
-     */
-    private ObjectFactory objectFactory;
 
     /**
      * 用于获取方法的参数名称
@@ -42,7 +39,7 @@ public class UrlMethodMappingFactory {
      * @param json
      * @return
      */
-    public UrlMethodMapping getUrlMethodMappingByJson(String json) {
+    public UrlMethodMapping getUrlMethodMappingByJson(@NonNull String json) {
         JSONObject jsonObject = JSONObject.parseObject(json);
         String url = jsonObject.getString(URL);
         String method = jsonObject.getString(METHOD);
@@ -97,10 +94,6 @@ public class UrlMethodMappingFactory {
         Assert.notNull(objectClass, CLASS + NOT_FIND);
         Assert.notNull(method, METHOD + NOT_FIND);
         Assert.notNull(paramClasses, PARAM_TYPES + NOT_FIND);
-
-        //class实例化对象
-        Object object = objectFactory.getObject(objectClass);
-        Assert.notNull(object, "objectFactory.getObject() 获取失败！objectClass：" + objectClass.getName());
         //获取参数名称
         String[] paramNames = paramNameGetter.getParamNames(method);
         Assert.notNull(paramNames, "paramNameGetter.getParamNames() 执行失败！method：" + method.getName());
@@ -110,7 +103,6 @@ public class UrlMethodMappingFactory {
         mapping.setMethod(method);
         mapping.setUrl(url);
         mapping.setRequestTypes(requestTypes);
-        mapping.setObject(object);
         mapping.setParamClasses(paramClasses);
         mapping.setObjectClass(objectClass);
         mapping.setParamNames(paramNames);
@@ -167,8 +159,7 @@ public class UrlMethodMappingFactory {
      * @param jsonArray
      * @return
      */
-    String[] jsonArrayToArray(JSONArray jsonArray) {
-        Assert.notNull(jsonArray);
+    String[] jsonArrayToArray(@NonNull JSONArray jsonArray) {
         String[] array = new String[jsonArray.size()];
         for (int i = 0; i < jsonArray.size(); i++) {
             array[i] = jsonArray.getString(i);

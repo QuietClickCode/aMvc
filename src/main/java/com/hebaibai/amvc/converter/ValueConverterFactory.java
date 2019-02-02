@@ -1,6 +1,7 @@
 package com.hebaibai.amvc.converter;
 
 import com.hebaibai.amvc.utils.ClassUtils;
+import lombok.NonNull;
 
 /**
  * 数据转换器工厂类
@@ -22,7 +23,7 @@ public class ValueConverterFactory {
      * @param valueClass
      * @return
      */
-    public static ValueConverter getValueConverter(Class valueClass) {
+    public static ValueConverter getValueConverter(@NonNull Class valueClass) {
         boolean baseClass = ClassUtils.isBaseClass(valueClass);
         if (baseClass) {
             return BASE_TYPE_VALUE_CONVERTER;

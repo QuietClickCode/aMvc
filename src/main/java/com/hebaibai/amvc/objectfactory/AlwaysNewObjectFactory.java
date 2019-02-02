@@ -1,6 +1,6 @@
-package com.hebaibai.amvc;
+package com.hebaibai.amvc.objectfactory;
 
-import com.hebaibai.amvc.utils.Assert;
+import lombok.NonNull;
 
 /**
  * 每次都新产生一个实例
@@ -8,8 +8,7 @@ import com.hebaibai.amvc.utils.Assert;
 public class AlwaysNewObjectFactory implements ObjectFactory {
 
     @Override
-    public Object getObject(Class objectClass) {
-        Assert.notNull(objectClass);
+    public Object getObject(@NonNull Class objectClass) {
         try {
             return objectClass.newInstance();
         } catch (InstantiationException e) {

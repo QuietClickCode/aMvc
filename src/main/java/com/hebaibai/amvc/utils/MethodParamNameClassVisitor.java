@@ -1,5 +1,6 @@
 package com.hebaibai.amvc.utils;
 
+import lombok.NonNull;
 import org.objectweb.asm.*;
 
 import java.util.List;
@@ -79,7 +80,11 @@ public class MethodParamNameClassVisitor extends ClassVisitor {
      * @param methodName 目标方法名称
      * @param patamTypes 目标方法的参数类型
      */
-    public MethodParamNameClassVisitor(List<String> paramNames, String methodName, Class[] patamTypes) {
+    public MethodParamNameClassVisitor(
+            @NonNull List<String> paramNames,
+            @NonNull String methodName,
+            @NonNull Class[] patamTypes
+    ) {
         super(Opcodes.ASM4);
         this.paramNames = paramNames;
         this.methodName = methodName;

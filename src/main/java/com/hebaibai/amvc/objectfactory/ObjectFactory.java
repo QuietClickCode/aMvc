@@ -1,4 +1,4 @@
-package com.hebaibai.amvc;
+package com.hebaibai.amvc.objectfactory;
 
 /**
  * 创建Object的工厂

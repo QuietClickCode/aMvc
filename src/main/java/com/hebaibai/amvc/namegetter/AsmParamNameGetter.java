@@ -2,6 +2,7 @@ package com.hebaibai.amvc.namegetter;
 
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.MethodParamNameClassVisitor;
+import lombok.NonNull;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ public class AsmParamNameGetter implements ParamNameGetter {
      * @return
      */
     @Override
-    public String[] getParamNames(Method method) {
+    public String[] getParamNames(@NonNull Method method) {
         Assert.notNull(method);
         Class aClass = method.getDeclaringClass();
         Parameter[] parameters = method.getParameters();
