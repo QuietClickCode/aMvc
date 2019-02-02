@@ -5,7 +5,10 @@ import com.hebaibai.amvc.utils.MethodParamNameClassVisitor;
 import lombok.NonNull;
 import org.objectweb.asm.ClassReader;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -13,6 +16,8 @@ import java.util.List;
 
 /**
  * 通过asm获取方法参数名称
+ *
+ * @author hjx
  */
 public class AsmParamNameGetter implements ParamNameGetter {
 
@@ -28,13 +33,7 @@ public class AsmParamNameGetter implements ParamNameGetter {
         Class aClass = method.getDeclaringClass();
         Parameter[] parameters = method.getParameters();
         String methodName = method.getName();
-        String className = aClass.getName();
-        ClassReader classReader = null;
-        try {
-            classReader = new ClassReader(className);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ClassReader classReader = getClassReader(aClass);
         Class[] paramClasses = new Class[parameters.length];
         for (int i = 0; i < paramClasses.length; i++) {
             paramClasses[i] = parameters[i].getType();
@@ -46,5 +45,27 @@ public class AsmParamNameGetter implements ParamNameGetter {
         );
         classReader.accept(myClassVisitor, 0);
         return paramNameList.toArray(new String[]{});
+    }
+
+    /**
+     * 获取 ClassReader
+     * 为什么要这么写呢？因为这个项目最终是一个jar文件，
+     * 在这个文件中是无法加载依赖这个jar的项目中的class的，
+     * 为什么呢？因为类加载器不一样。
+     *
+     * @param aClass
+     * @return
+     */
+    ClassReader getClassReader(Class aClass) {
+        Assert.notNull(aClass);
+        String className = aClass.getName();
+        String path = getClass().getClassLoader().getResource("/").getPath();
+        File classFile = new File(path + className.replace('.', '/') + ".class");
+        try (InputStream inputStream = new FileInputStream(classFile)) {
+            ClassReader classReader = new ClassReader(inputStream);
+            return classReader;
+        } catch (IOException e) {
+        }
+        throw new RuntimeException(className + "无法加载！");
     }
 }

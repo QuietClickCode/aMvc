@@ -1,6 +1,7 @@
 package com.hebaibai.amvc.utils;
 
 import lombok.NonNull;
+import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
  *
  * @author hjx
  */
+@UtilityClass
 public class ClassUtils {
 
     /**
@@ -114,5 +116,14 @@ public class ClassUtils {
         } catch (NoSuchMethodException e) {
         }
         return null;
+    }
+
+    /**
+     * 获取当前的类加载器
+     *
+     * @return
+     */
+    public static ClassLoader getClassLoader() {
+        return Thread.currentThread().getContextClassLoader();
     }
 }

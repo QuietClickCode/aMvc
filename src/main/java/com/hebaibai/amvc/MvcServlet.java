@@ -1,23 +1,39 @@
 package com.hebaibai.amvc;
 
+import lombok.SneakyThrows;
+import lombok.extern.java.Log;
+
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
+ * mvc的入口
+ *
  * @author hjx
  */
+@Log
 public class MvcServlet extends HttpServlet {
 
+    /**
+     * 应用
+     */
+    protected Application application;
+
+    /**
+     * 初始化项目
+     * 1：获取Servlet名称，加载名称相同的配置文件
+     * 2：加载配置文件中的urlMapping
+     *
+     * @throws ServletException
+     */
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println("==================");
-        String[] values = req.getParameterValues("name");
-        for (String value : values) {
-            System.out.println(value);
-        }
-        System.out.println("==================");
+    @SneakyThrows(ServletException.class)
+    public void init(ServletConfig config) {
+        super.init(config);
+        String servletName = config.getServletName();
+        log.info("aMvc init servletName：" + servletName);
+        application = new Application(servletName);
     }
+
 }

@@ -4,6 +4,8 @@ import lombok.NonNull;
 
 /**
  * 每次都新产生一个实例
+ *
+ * @author hjx
  */
 public class AlwaysNewObjectFactory implements ObjectFactory {
 

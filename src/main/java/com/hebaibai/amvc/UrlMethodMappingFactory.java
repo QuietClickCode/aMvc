@@ -3,13 +3,11 @@ package com.hebaibai.amvc;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hebaibai.amvc.namegetter.ParamNameGetter;
-import com.hebaibai.amvc.objectfactory.ObjectFactory;
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.ClassUtils;
+import com.hebaibai.amvc.utils.UrlUtils;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 
 import java.lang.reflect.Method;
 
@@ -36,11 +34,10 @@ class UrlMethodMappingFactory {
     /**
      * 通过json 获取映射
      *
-     * @param json
+     * @param jsonObject
      * @return
      */
-    public UrlMethodMapping getUrlMethodMappingByJson(@NonNull String json) {
-        JSONObject jsonObject = JSONObject.parseObject(json);
+    public UrlMethodMapping getUrlMethodMappingByJson(@NonNull JSONObject jsonObject) {
         String url = jsonObject.getString(URL);
         String method = jsonObject.getString(METHOD);
         String className = jsonObject.getString(CLASS);
@@ -68,6 +65,7 @@ class UrlMethodMappingFactory {
     ) {
         //class
         Class objectClass = ClassUtils.forName(className);
+        Assert.notNull(objectClass, className + "实例化异常！");
         //请求方式
         RequestType[] types = getRequestTypes(requestTypes);
         //参数类型
@@ -95,13 +93,14 @@ class UrlMethodMappingFactory {
         Assert.notNull(method, METHOD + NOT_FIND);
         Assert.notNull(paramClasses, PARAM_TYPES + NOT_FIND);
         //获取参数名称
+        Assert.notNull(paramNameGetter, "paramNameGetter 为 null！");
         String[] paramNames = paramNameGetter.getParamNames(method);
         Assert.notNull(paramNames, "paramNameGetter.getParamNames() 执行失败！method：" + method.getName());
         Assert.isTrue(paramNames.length == paramClasses.length, "方法名称取出异常 method：" + method.getName());
         //组装参数
         UrlMethodMapping mapping = new UrlMethodMapping();
         mapping.setMethod(method);
-        mapping.setUrl(url);
+        mapping.setUrl(UrlUtils.makeUrl(url));
         mapping.setRequestTypes(requestTypes);
         mapping.setParamClasses(paramClasses);
         mapping.setObjectClass(objectClass);
@@ -166,4 +165,5 @@ class UrlMethodMappingFactory {
         }
         return array;
     }
+
 }
