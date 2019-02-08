@@ -3,6 +3,8 @@ package com.hebaibai.amvc;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hebaibai.amvc.namegetter.AsmParamNameGetter;
+import com.hebaibai.amvc.objectfactory.AlwaysNewObjectFactory;
+import com.hebaibai.amvc.objectfactory.ObjectFactory;
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.ClassUtils;
 import lombok.NonNull;
@@ -33,6 +35,11 @@ public class Application {
      * 映射的工厂类
      */
     private UrlMethodMappingFactory urlMethodMappingFactory = new UrlMethodMappingFactory();
+
+    /**
+     * 生成对象的工厂
+     */
+    private ObjectFactory objectFactory;
 
     /**
      * 应用的名称
@@ -69,8 +76,12 @@ public class Application {
         JSONObject configJson = JSONObject.parseObject(config);
         boolean annotationSupport = configJson.getBoolean(ANNOTATION_SUPPORT_NODE);
 
+        //是否开启注解
         Assert.isTrue(!annotationSupport, "现在不支持此功能！");
         urlMethodMappingFactory.setParamNameGetter(new AsmParamNameGetter());
+
+        //生成对象的工厂类（当先默认为）
+        this.objectFactory = new AlwaysNewObjectFactory();
 
         JSONArray jsonArray = configJson.getJSONArray(MAPPING_NODE);
         Assert.notNull(jsonArray, MAPPING_NODE + NOT_FIND);
@@ -107,8 +118,28 @@ public class Application {
      * @param url
      * @return
      */
-    String getUrlDescribe(RequestType requestType, String url) {
+    String getUrlDescribe(RequestType requestType, @NonNull String url) {
         return requestType.name() + ":" + url;
+    }
+
+    /**
+     * 根据url描述获取 UrlMethodMapping
+     *
+     * @param urlDescribe
+     * @return
+     */
+    UrlMethodMapping getUrlMethodMapping(@NonNull String urlDescribe) {
+        UrlMethodMapping urlMethodMapping = applicationUrlMapping.get(urlDescribe);
+        return urlMethodMapping;
+    }
+
+    /**
+     * 生成对象的工厂
+     *
+     * @return
+     */
+    ObjectFactory getObjectFactory() {
+        return this.objectFactory;
     }
 
 }

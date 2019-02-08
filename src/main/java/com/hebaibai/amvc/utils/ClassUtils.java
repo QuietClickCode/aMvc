@@ -4,6 +4,7 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,8 +112,8 @@ public class ClassUtils {
      */
     public static Method getMethod(@NonNull Class aClass, @NonNull String methodName, @NonNull Class[] parameterTypes) {
         try {
-            Method aClassMethod = aClass.getMethod(methodName, parameterTypes);
-            return aClassMethod;
+            Method method = aClass.getMethod(methodName, parameterTypes);
+            return method;
         } catch (NoSuchMethodException e) {
         }
         return null;

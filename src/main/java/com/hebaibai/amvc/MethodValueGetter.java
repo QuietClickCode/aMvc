@@ -52,7 +52,7 @@ public class MethodValueGetter {
         Assert.isTrue(valueNames.length == valueTypes.length, "getMethodValue() 参数长度不一致！");
         int length = valueNames.length;
         Object[] values = new Object[length];
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < valueNames.length; i++) {
             Class valueType = valueTypes[i];
             String valueName = valueNames[i];
             String[] strValues = valueSource.get(valueName);
