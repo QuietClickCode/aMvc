@@ -60,6 +60,7 @@ public class MvcServlet extends HttpServlet {
         RequestType requestType = getRequestType(request.getMethod());
         String urlDescribe = application.getUrlDescribe(requestType, request.getPathInfo());
         UrlMethodMapping urlMethodMapping = application.getUrlMethodMapping(urlDescribe);
+        //没有找到对应的mapping
         if (urlMethodMapping == null) {
             unsupportedMethod(request, response);
             return;
