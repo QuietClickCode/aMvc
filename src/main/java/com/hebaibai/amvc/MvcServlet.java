@@ -137,7 +137,6 @@ public class MvcServlet extends HttpServlet {
         doInvoke(request, response);
     }
 
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         doInvoke(request, response);

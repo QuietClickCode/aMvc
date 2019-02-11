@@ -50,7 +50,8 @@ public class BaseTypeValueConverter implements ValueConverter {
         if (valueClass.equals(ClassUtils.BYTE_CLASS) || valueClass.equals(ClassUtils.BYTE_WRAP_CLASS)) {
             Object object = Byte.parseByte(val);
             return (T) object;
-        } else if (valueClass.equals(ClassUtils.BOOLEAN_CLASS) || valueClass.equals(ClassUtils.BOOLEAN_WRAP_CLASS)) {
+        }
+        if (valueClass.equals(ClassUtils.BOOLEAN_CLASS) || valueClass.equals(ClassUtils.BOOLEAN_WRAP_CLASS)) {
             Object object = Boolean.parseBoolean(val);
             return (T) object;
         }
