@@ -1,7 +1,6 @@
 package com.hebaibai.amvc;
 
 import com.alibaba.fastjson.JSONObject;
-import com.hebaibai.amvc.objectfactory.AlwaysNewObjectFactory;
 import com.hebaibai.amvc.objectfactory.ObjectFactory;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
@@ -27,20 +26,18 @@ public class MvcServlet extends HttpServlet {
     /**
      * 应用
      */
-    Application application;
+    private Application application;
 
     /**
      * 请求中的参数获取器
      */
-    MethodValueGetter methodValueGetter = new MethodValueGetter();
+    private MethodValueGetter methodValueGetter;
 
 
     /**
      * 初始化项目
      * 1：获取Servlet名称，加载名称相同的配置文件
      * 2：加载配置文件中的urlMapping
-     *
-     * @throws ServletException
      */
     @Override
     @SneakyThrows(ServletException.class)
@@ -49,41 +46,29 @@ public class MvcServlet extends HttpServlet {
         String servletName = config.getServletName();
         log.info("aMvc init servletName：" + servletName);
         application = new Application(servletName);
+        methodValueGetter = new MethodValueGetter();
     }
 
     /**
      * 执行请求
      *
-     * @param req
-     * @param resp
-     * @throws ServletException
-     * @throws IOException
+     * @param request
+     * @param response
      */
-    void doInvoke(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        RequestType requestType = getRequestType(req.getMethod());
-        String urlDescribe = application.getUrlDescribe(requestType, req.getPathInfo());
+    @SneakyThrows({IOException.class})
+    private void doInvoke(HttpServletRequest request, HttpServletResponse response) {
+        RequestType requestType = getRequestType(request.getMethod());
+        String urlDescribe = application.getUrlDescribe(requestType, request.getPathInfo());
         UrlMethodMapping urlMethodMapping = application.getUrlMethodMapping(urlDescribe);
         if (urlMethodMapping == null) {
-            if (requestType == RequestType.GET) {
-                super.doGet(req, resp);
-                return;
-            }
-            if (requestType == RequestType.POST) {
-                super.doPost(req, resp);
-                return;
-            }
-            if (requestType == RequestType.PUT) {
-                super.doPut(req, resp);
-                return;
-            }
-            if (requestType == RequestType.DELETE) {
-                super.doDelete(req, resp);
-                return;
-            }
+            unsupportedMethod(request, response);
+            return;
         }
         //方法执行结果
-        Object result = invokeMethod(urlMethodMapping, req);
-        PrintWriter writer = resp.getWriter();
+        Object result = invokeMethod(urlMethodMapping, request);
+        //TODO:视图处理，先以JSON形式返回
+        response.setHeader("content-type", "application/json;charset=UTF-8");
+        PrintWriter writer = response.getWriter();
         writer.write(JSONObject.toJSONString(result));
         writer.close();
     }
@@ -92,14 +77,15 @@ public class MvcServlet extends HttpServlet {
      * 反射执行方法
      *
      * @param urlMethodMapping
-     * @param req
+     * @param request
      * @return
      */
     @SneakyThrows({IllegalAccessException.class, InvocationTargetException.class})
-    Object invokeMethod(UrlMethodMapping urlMethodMapping, HttpServletRequest req) {
-        Object[] methodValue = methodValueGetter.getMethodValue(urlMethodMapping.getParamClasses(), urlMethodMapping.getParamNames(), req);
+    private Object invokeMethod(UrlMethodMapping urlMethodMapping, HttpServletRequest request) {
+        Object[] methodValue = methodValueGetter.getMethodValue(urlMethodMapping.getParamClasses(), urlMethodMapping.getParamNames(), request);
         Method method = urlMethodMapping.getMethod();
         Class objectClass = urlMethodMapping.getObjectClass();
+        //通过对象工厂实例化objectClass
         ObjectFactory objectFactory = application.getObjectFactory();
         Object object = objectFactory.getObject(objectClass);
         return method.invoke(object, methodValue);
@@ -111,7 +97,7 @@ public class MvcServlet extends HttpServlet {
      * @param requestMethod
      * @return
      */
-    RequestType getRequestType(String requestMethod) {
+    private RequestType getRequestType(String requestMethod) {
         if (requestMethod.equalsIgnoreCase(RequestType.GET.name())) {
             return RequestType.GET;
         }
@@ -127,24 +113,42 @@ public class MvcServlet extends HttpServlet {
         throw new UnsupportedOperationException("请求方式不支持：" + requestMethod);
     }
 
+    /**
+     * 不支持的请求方式
+     *
+     * @param request
+     * @param response
+     */
+    @SneakyThrows(IOException.class)
+    private void unsupportedMethod(HttpServletRequest request, HttpServletResponse response) {
+        String protocol = request.getProtocol();
+        String method = request.getMethod();
+        String errorMsg = "不支持的请求方式：" + method + "！";
+        if (protocol.endsWith("1.1")) {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, errorMsg);
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, errorMsg);
+        }
+    }
+
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        doInvoke(req, resp);
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        doInvoke(request, response);
     }
 
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        doInvoke(req, resp);
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        doInvoke(request, response);
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        doInvoke(req, resp);
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) {
+        doInvoke(request, response);
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        doInvoke(req, resp);
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
+        doInvoke(request, response);
     }
 }

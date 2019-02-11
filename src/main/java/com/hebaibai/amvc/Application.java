@@ -66,7 +66,7 @@ public class Application {
      * 初始化配置
      */
     @SneakyThrows(IOException.class)
-    void init() {
+    protected void init() {
         String configFileName = applicationName + ".json";
         InputStream inputStream = ClassUtils.getClassLoader().getResourceAsStream(configFileName);
         byte[] bytes = new byte[inputStream.available()];
@@ -76,11 +76,11 @@ public class Application {
         JSONObject configJson = JSONObject.parseObject(config);
         boolean annotationSupport = configJson.getBoolean(ANNOTATION_SUPPORT_NODE);
 
-        //是否开启注解
+        //TODO:是否开启注解，注解支持之后写
         Assert.isTrue(!annotationSupport, "现在不支持此功能！");
         urlMethodMappingFactory.setParamNameGetter(new AsmParamNameGetter());
 
-        //生成对象的工厂类（当先默认为）
+        //TODO:生成对象的工厂类（当先默认为每次都new一个新的对象）
         this.objectFactory = new AlwaysNewObjectFactory();
 
         JSONArray jsonArray = configJson.getJSONArray(MAPPING_NODE);
@@ -92,11 +92,22 @@ public class Application {
     }
 
     /**
+     * 获取Url的描述
+     *
+     * @param requestType
+     * @param url
+     * @return
+     */
+    protected String getUrlDescribe(RequestType requestType, @NonNull String url) {
+        return requestType.name() + ":" + url;
+    }
+
+    /**
      * 将映射映射添加进应用
      *
      * @param urlMethodMapping
      */
-    void addApplicationUrlMapping(@NonNull UrlMethodMapping urlMethodMapping) {
+    protected void addApplicationUrlMapping(@NonNull UrlMethodMapping urlMethodMapping) {
         RequestType[] requestTypes = urlMethodMapping.getRequestTypes();
         String url = urlMethodMapping.getUrl();
         for (RequestType requestType : requestTypes) {
@@ -112,23 +123,12 @@ public class Application {
     }
 
     /**
-     * 获取Url的描述
-     *
-     * @param requestType
-     * @param url
-     * @return
-     */
-    String getUrlDescribe(RequestType requestType, @NonNull String url) {
-        return requestType.name() + ":" + url;
-    }
-
-    /**
      * 根据url描述获取 UrlMethodMapping
      *
      * @param urlDescribe
      * @return
      */
-    UrlMethodMapping getUrlMethodMapping(@NonNull String urlDescribe) {
+    protected UrlMethodMapping getUrlMethodMapping(@NonNull String urlDescribe) {
         UrlMethodMapping urlMethodMapping = applicationUrlMapping.get(urlDescribe);
         return urlMethodMapping;
     }
@@ -138,7 +138,7 @@ public class Application {
      *
      * @return
      */
-    ObjectFactory getObjectFactory() {
+    protected ObjectFactory getObjectFactory() {
         return this.objectFactory;
     }
 
