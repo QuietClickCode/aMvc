@@ -1,12 +1,21 @@
 package com.hebaibai.amvc.utils;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
+import sun.net.www.protocol.jar.URLJarFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * ClassUtils
@@ -15,6 +24,18 @@ import java.util.List;
  */
 @UtilityClass
 public class ClassUtils {
+
+    //文件类型 file
+    private static final String TYPE_FILE = "file";
+    //文件类型 jar
+    private static final String TYPE_JAR = "jar";
+    //字符集
+    private static final String CHARSET_UTF_8 = "UTF-8";
+    //class文件标志
+    private static final String CLASS_MARK = ".class";
+    private static final String DOT = ".";
+    private static final String SLASH = "/";
+
 
     /**
      * java 基本类型
@@ -97,6 +118,7 @@ public class ClassUtils {
         try {
             Class<?> aClass = Class.forName(className);
             return aClass;
+        } catch (NoClassDefFoundError e) {
         } catch (ClassNotFoundException e) {
         }
         return null;
@@ -125,6 +147,103 @@ public class ClassUtils {
      * @return
      */
     public static ClassLoader getClassLoader() {
-        return Thread.currentThread().getContextClassLoader();
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader == null) {
+            contextClassLoader = ClassUtils.class.getClassLoader();
+        }
+        return contextClassLoader;
+    }
+
+
+    /**
+     * 从给定的报名中找出所有的class
+     *
+     * @param packageName
+     * @param classes
+     */
+    @SneakyThrows({IOException.class})
+    public static void getClassByPackage(String packageName, Set<Class> classes) {
+        Assert.notNull(classes);
+        String packagePath = packageName.replace(DOT, SLASH);
+        Enumeration<URL> resources = ClassUtils.getClassLoader().getResources(packagePath);
+        while (resources.hasMoreElements()) {
+            URL url = resources.nextElement();
+            //文件类型
+            String protocol = url.getProtocol();
+            String filePath = URLDecoder.decode(url.getFile(), CHARSET_UTF_8);
+            if (TYPE_FILE.equals(protocol)) {
+                getClassByFilePath(packageName, filePath, classes);
+            }
+            if (TYPE_JAR.equals(protocol)) {
+                //截取文件的路径
+                filePath = filePath.substring(filePath.indexOf(":") + 1, filePath.indexOf("!"));
+                getClassByJarPath(packageName, filePath, classes);
+            }
+        }
+    }
+
+    /**
+     * 在文件夹中递归找出该文件夹中在package中的class
+     *
+     * @param packageName
+     * @param filePath
+     * @param classes
+     */
+    static void getClassByFilePath(String packageName, String filePath, Set<Class> classes) {
+        File targetFile = new File(filePath);
+        if (!targetFile.exists()) {
+            return;
+        }
+        if (targetFile.isDirectory()) {
+            File[] files = targetFile.listFiles();
+            for (File file : files) {
+                String path = file.getPath();
+                getClassByFilePath(packageName, path, classes);
+            }
+        } else {
+            //如果是一个class文件
+            if (filePath.endsWith(CLASS_MARK)) {
+                //提取完整的类名
+                filePath = filePath.replace(SLASH, DOT);
+                int i = filePath.indexOf(packageName);
+                String className = filePath.substring(i, filePath.length() - 6);
+                //根据类名加载class对象
+                Class aClass = ClassUtils.forName(className);
+                if (aClass != null) {
+                    classes.add(aClass);
+                }
+            }
+        }
+    }
+
+    /**
+     * 在jar文件中递归找出该文件夹中在package中的class
+     *
+     * @param packageName
+     * @param filePath
+     * @param classes
+     */
+    @SneakyThrows({IOException.class})
+    static void getClassByJarPath(String packageName, String filePath, Set<Class> classes) {
+        JarFile jarFile = new URLJarFile(new File(filePath));
+        Enumeration<JarEntry> entries = jarFile.entries();
+        while (entries.hasMoreElements()) {
+            JarEntry jarEntry = entries.nextElement();
+            String jarEntryName = jarEntry.getName().replace(SLASH, DOT);
+            //在package下的class
+            boolean trueClass = jarEntryName.endsWith(CLASS_MARK) && jarEntryName.startsWith(packageName);
+            //不是一个内部类
+            boolean notInnerClass = jarEntryName.indexOf("$") == -1;
+            if (trueClass && notInnerClass) {
+                String className = jarEntryName.substring(0, jarEntryName.length() - 6);
+                System.out.println(className);
+                //根据类名加载class对象
+                Class aClass = ClassUtils.forName(className);
+                if (aClass != null) {
+                    classes.add(aClass);
+                }
+            }
+        }
+
     }
 }

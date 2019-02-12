@@ -56,10 +56,10 @@ public class AsmParamNameGetter implements ParamNameGetter {
      * @param aClass
      * @return
      */
-    ClassReader getClassReader(Class aClass) {
+    public ClassReader getClassReader(Class aClass) {
         Assert.notNull(aClass);
         String className = aClass.getName();
-        String path = getClass().getClassLoader().getResource("/").getPath();
+        String path = getClass().getResource("/").getPath();
         File classFile = new File(path + className.replace('.', '/') + ".class");
         try (InputStream inputStream = new FileInputStream(classFile)) {
             ClassReader classReader = new ClassReader(inputStream);

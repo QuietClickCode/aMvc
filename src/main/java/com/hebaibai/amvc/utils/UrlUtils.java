@@ -9,25 +9,31 @@ import lombok.NonNull;
  */
 public class UrlUtils {
 
-    private static final String REGEX = "/";
+    private static final String SLASH = "/";
 
     /**
      * 处理url
-     * 去掉连接中多余的"/"
+     * 1：去掉连接中相邻并重复的“/”,
+     * 2：链接开头没有“/”,则添加。
+     * 3：链接结尾有“/”，则去掉。
      *
      * @param url
      * @return
      */
     public static String makeUrl(@NonNull String url) {
-        String[] split = url.split(REGEX);
+        char[] chars = url.toCharArray();
         StringBuilder newUrl = new StringBuilder();
-        for (int i = 0; i < split.length; i++) {
-            if (split[i].length() != 0) {
-                newUrl.append(split[i]);
+        if (!url.startsWith(SLASH)) {
+            newUrl.append(SLASH);
+        }
+        for (int i = 0; i < chars.length; i++) {
+            if (i != 0 && chars[i] == chars[i - 1] && chars[i] == '/') {
+                continue;
             }
-            if (i < split.length - 1) {
-                newUrl.append(REGEX);
+            if (i == chars.length - 1 && chars[i] == '/') {
+                continue;
             }
+            newUrl.append(chars[i]);
         }
         return newUrl.toString();
     }

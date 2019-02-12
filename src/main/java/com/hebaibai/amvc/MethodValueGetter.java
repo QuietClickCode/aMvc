@@ -51,16 +51,13 @@ public class MethodValueGetter {
     ) {
         Assert.isTrue(valueNames.length == valueTypes.length, "getMethodValue() 参数长度不一致！");
         int length = valueNames.length;
+
         Object[] values = new Object[length];
         for (int i = 0; i < valueNames.length; i++) {
             Class valueType = valueTypes[i];
             String valueName = valueNames[i];
             String[] strValues = valueSource.get(valueName);
-            //来源参数中 key不存在或者key的值不存在，设置值为null
-            if (strValues == null) {
-                values[i] = null;
-                continue;
-            }
+            Assert.notNull(strValues, "参数：" + valueName + " 不存在！");
             ValueConverter valueConverter = ValueConverterFactory.getValueConverter(valueType);
             Object converter = valueConverter.converter(strValues, valueType);
             values[i] = converter;

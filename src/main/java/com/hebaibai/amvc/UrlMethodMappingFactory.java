@@ -2,22 +2,25 @@ package com.hebaibai.amvc;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.hebaibai.amvc.annotation.Request;
 import com.hebaibai.amvc.namegetter.ParamNameGetter;
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.ClassUtils;
 import com.hebaibai.amvc.utils.UrlUtils;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * UrlMethodMapping的工厂类
  *
  * @author hjx
  */
-public @Data
-class UrlMethodMappingFactory {
+public class UrlMethodMappingFactory {
 
     private static final String URL = "url";
     private static final String REQUEST_TYPE = "requestType";
@@ -29,6 +32,8 @@ class UrlMethodMappingFactory {
     /**
      * 用于获取方法的参数名称
      */
+    @Getter
+    @Setter
     private ParamNameGetter paramNameGetter;
 
     /**
@@ -53,6 +58,58 @@ class UrlMethodMappingFactory {
     }
 
     /**
+     * 通过解析Class 获取映射
+     *
+     * @param aClass
+     * @return
+     */
+    public List<UrlMethodMapping> getUrlMethodMappingListByClass(Class<Request> aClass) {
+        List<UrlMethodMapping> mappings = new ArrayList<>();
+        Request request = aClass.getDeclaredAnnotation(Request.class);
+        if (request == null) {
+            return mappings;
+        }
+        String basePath = request.value();
+        for (Method classMethod : aClass.getDeclaredMethods()) {
+            UrlMethodMapping urlMethodMapping = getUrlMethodMappingListByMethod(classMethod);
+            if (urlMethodMapping == null) {
+                continue;
+            }
+            //将添加在class上的Request中的path作为基础路径
+            String url = UrlUtils.makeUrl(basePath + "/" + urlMethodMapping.getUrl());
+            urlMethodMapping.setUrl(url);
+            mappings.add(urlMethodMapping);
+        }
+        return mappings;
+    }
+
+    /**
+     * 通过解析Method 获取映射
+     * 注解Request不存在时跳出
+     *
+     * @param method
+     * @return
+     */
+    private UrlMethodMapping getUrlMethodMappingListByMethod(Method method) {
+        Request request = method.getDeclaredAnnotation(Request.class);
+        if (request == null) {
+            return null;
+        }
+        Class<?> declaringClass = method.getDeclaringClass();
+        String path = request.value();
+        for (char c : path.toCharArray()) {
+            Assert.isTrue(c != ' ', declaringClass + "." + method.getName() + "请求路径异常：" + path + " ！");
+        }
+        return getUrlMethodMapping(
+                path,
+                request.type(),
+                declaringClass,
+                method,
+                method.getParameterTypes()
+        );
+    }
+
+    /**
      * @param url             请求地址
      * @param requestTypes    请求方式
      * @param className       实例对象
@@ -60,7 +117,7 @@ class UrlMethodMappingFactory {
      * @param paramClassNames 请求参数类型
      * @return
      */
-    private UrlMethodMapping getUrlMethodMapping(
+    public UrlMethodMapping getUrlMethodMapping(
             String url, String[] requestTypes, String className, String methodName, String[] paramClassNames
     ) {
         //class

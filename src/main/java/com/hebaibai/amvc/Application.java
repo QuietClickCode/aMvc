@@ -14,7 +14,7 @@ import lombok.extern.java.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -25,11 +25,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Log
 public class Application {
 
-    private static final String NOT_FIND = "缺少配置！";
+    private static final String NOT_FIND = " 缺少配置！";
     //urlMapping节点名称
     private static final String MAPPING_NODE = "mapping";
     //是否支持注解
     private static final String ANNOTATION_SUPPORT_NODE = "annotationSupport";
+    //开启注解支持后，要扫描的包名
+    private static final String ANNOTATION_PACKAGE_NODE = "annotationPackage";
 
     /**
      * 映射的工厂类
@@ -74,20 +76,18 @@ public class Application {
         String config = new String(bytes, "utf-8");
         //应用配置
         JSONObject configJson = JSONObject.parseObject(config);
-        boolean annotationSupport = configJson.getBoolean(ANNOTATION_SUPPORT_NODE);
-
-        //TODO:是否开启注解，注解支持之后写
-        Assert.isTrue(!annotationSupport, "现在不支持此功能！");
-        urlMethodMappingFactory.setParamNameGetter(new AsmParamNameGetter());
 
         //TODO:生成对象的工厂类（当先默认为每次都new一个新的对象）
         this.objectFactory = new AlwaysNewObjectFactory();
-
-        JSONArray jsonArray = configJson.getJSONArray(MAPPING_NODE);
-        Assert.notNull(jsonArray, MAPPING_NODE + NOT_FIND);
-        for (int i = 0; i < jsonArray.size(); i++) {
-            UrlMethodMapping mapping = urlMethodMappingFactory.getUrlMethodMappingByJson(jsonArray.getJSONObject(i));
-            addApplicationUrlMapping(mapping);
+        //TODO:不同的入参名称获取类（当前默认为asm）
+        urlMethodMappingFactory.setParamNameGetter(new AsmParamNameGetter());
+        //通过文件配置加载
+        addApplicationUrlMappingByJsonConfig(configJson);
+        //是否开启注解支持
+        Boolean annotationSupport = configJson.getBoolean(ANNOTATION_SUPPORT_NODE);
+        Assert.notNull(annotationSupport, ANNOTATION_SUPPORT_NODE + NOT_FIND);
+        if (annotationSupport) {
+            addApplicationUrlMappingByAnnotationConfig(configJson);
         }
     }
 
@@ -100,26 +100,6 @@ public class Application {
      */
     protected String getUrlDescribe(RequestType requestType, @NonNull String url) {
         return requestType.name() + ":" + url;
-    }
-
-    /**
-     * 将映射映射添加进应用
-     *
-     * @param urlMethodMapping
-     */
-    protected void addApplicationUrlMapping(@NonNull UrlMethodMapping urlMethodMapping) {
-        RequestType[] requestTypes = urlMethodMapping.getRequestTypes();
-        String url = urlMethodMapping.getUrl();
-        for (RequestType requestType : requestTypes) {
-            String urlDescribe = getUrlDescribe(requestType, url);
-            if (applicationUrlMapping.containsKey(urlDescribe)) {
-                throw new UnsupportedOperationException(urlDescribe + "已经存在！");
-            }
-            Method method = urlMethodMapping.getMethod();
-            Class aClass = urlMethodMapping.getClass();
-            log.info("mapping url：" + urlDescribe + " to " + aClass.getName() + "." + method.getName());
-            applicationUrlMapping.put(urlDescribe, urlMethodMapping);
-        }
     }
 
     /**
@@ -140,6 +120,68 @@ public class Application {
      */
     protected ObjectFactory getObjectFactory() {
         return this.objectFactory;
+    }
+
+
+    /**
+     * 使用注解来加载UrlMethodMapping
+     *
+     * @param configJson
+     */
+    private void addApplicationUrlMappingByAnnotationConfig(JSONObject configJson) {
+        String annotationPackage = configJson.getString(ANNOTATION_PACKAGE_NODE);
+        Assert.notNull(annotationPackage, ANNOTATION_PACKAGE_NODE + NOT_FIND);
+        //获取添加了@Request的类
+        Set<Class> classes = new HashSet<>();
+        ClassUtils.getClassByPackage(annotationPackage, classes);
+        Iterator<Class> iterator = classes.iterator();
+        while (iterator.hasNext()) {
+            Class aClass = iterator.next();
+            List<UrlMethodMapping> mappings = urlMethodMappingFactory.getUrlMethodMappingListByClass(aClass);
+            if (mappings.size() == 0) {
+                continue;
+            }
+            for (UrlMethodMapping mapping : mappings) {
+                addApplicationUrlMapping(mapping);
+            }
+        }
+    }
+
+    /**
+     * 使用文件配置来加载UrlMethodMapping
+     * 配置中找不到的话不执行。
+     *
+     * @param configJson
+     */
+    private void addApplicationUrlMappingByJsonConfig(JSONObject configJson) {
+        JSONArray jsonArray = configJson.getJSONArray(MAPPING_NODE);
+        if (jsonArray == null || jsonArray.size() == 0) {
+            return;
+        }
+        for (int i = 0; i < jsonArray.size(); i++) {
+            UrlMethodMapping mapping = urlMethodMappingFactory.getUrlMethodMappingByJson(jsonArray.getJSONObject(i));
+            addApplicationUrlMapping(mapping);
+        }
+    }
+
+    /**
+     * 将映射映射添加进应用
+     *
+     * @param urlMethodMapping
+     */
+    private void addApplicationUrlMapping(@NonNull UrlMethodMapping urlMethodMapping) {
+        RequestType[] requestTypes = urlMethodMapping.getRequestTypes();
+        String url = urlMethodMapping.getUrl();
+        for (RequestType requestType : requestTypes) {
+            String urlDescribe = getUrlDescribe(requestType, url);
+            if (applicationUrlMapping.containsKey(urlDescribe)) {
+                throw new UnsupportedOperationException(urlDescribe + "已经存在！");
+            }
+            Method method = urlMethodMapping.getMethod();
+            Class aClass = urlMethodMapping.getClass();
+            log.info("mapping url：" + urlDescribe + " to " + aClass.getName() + "." + method.getName());
+            applicationUrlMapping.put(urlDescribe, urlMethodMapping);
+        }
     }
 
 }
