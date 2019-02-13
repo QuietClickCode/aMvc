@@ -7,7 +7,9 @@ import com.hebaibai.amvc.objectfactory.AlwaysNewObjectFactory;
 import com.hebaibai.amvc.objectfactory.ObjectFactory;
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.ClassUtils;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -39,13 +41,23 @@ public class Application {
     private UrlMethodMappingFactory urlMethodMappingFactory = new UrlMethodMappingFactory();
 
     /**
+     * 请求中的参数获取器
+     */
+    @Getter
+    @Setter
+    private MethodValueGetter methodValueGetter;
+
+    /**
      * 生成对象的工厂
      */
+    @Getter
+    @Setter
     private ObjectFactory objectFactory;
 
     /**
      * 应用的名称
      */
+    @Getter
     private String applicationName;
 
     /**
@@ -61,6 +73,7 @@ public class Application {
      */
     public Application(String applicationName) {
         this.applicationName = applicationName;
+        this.methodValueGetter = new MethodValueGetter();
         init();
     }
 
@@ -112,16 +125,6 @@ public class Application {
         UrlMethodMapping urlMethodMapping = applicationUrlMapping.get(urlDescribe);
         return urlMethodMapping;
     }
-
-    /**
-     * 生成对象的工厂
-     *
-     * @return
-     */
-    protected ObjectFactory getObjectFactory() {
-        return this.objectFactory;
-    }
-
 
     /**
      * 使用注解来加载UrlMethodMapping

@@ -28,16 +28,12 @@ public class MvcServlet extends HttpServlet {
      */
     private Application application;
 
-    /**
-     * 请求中的参数获取器
-     */
-    private MethodValueGetter methodValueGetter;
-
 
     /**
      * 初始化项目
      * 1：获取Servlet名称，加载名称相同的配置文件
      * 2：加载配置文件中的urlMapping
+     * 3：加载其他配置
      */
     @Override
     @SneakyThrows(ServletException.class)
@@ -46,7 +42,19 @@ public class MvcServlet extends HttpServlet {
         String servletName = config.getServletName();
         log.info("aMvc init servletName：" + servletName);
         application = new Application(servletName);
-        methodValueGetter = new MethodValueGetter();
+        afterInitMvc(application);
+        log.info("aMvc init finish：" + servletName);
+    }
+
+
+    /**
+     * 添加一个空方法，在框架加载完毕后执行。
+     * 在配合其他框架使用的时候，继承此类并重写重写此方法，
+     * 比如在集成Ioc框架时，修改Application中的objectFactory对象即可。
+     *
+     * @param application
+     */
+    protected void afterInitMvc(Application application) {
     }
 
     /**
@@ -83,6 +91,7 @@ public class MvcServlet extends HttpServlet {
      */
     @SneakyThrows({IllegalAccessException.class, InvocationTargetException.class})
     private Object invokeMethod(UrlMethodMapping urlMethodMapping, HttpServletRequest request) {
+        MethodValueGetter methodValueGetter = application.getMethodValueGetter();
         Object[] methodValue = methodValueGetter.getMethodValue(urlMethodMapping.getParamClasses(), urlMethodMapping.getParamNames(), request);
         Method method = urlMethodMapping.getMethod();
         Class objectClass = urlMethodMapping.getObjectClass();
