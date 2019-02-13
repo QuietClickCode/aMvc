@@ -202,22 +202,27 @@ public class ClassUtils {
             }
         } else {
             //如果是一个class文件
-            if (filePath.endsWith(CLASS_MARK)) {
+            boolean trueClass = filePath.endsWith(CLASS_MARK);
+            if (trueClass) {
                 //提取完整的类名
                 filePath = filePath.replace(SLASH, DOT);
                 int i = filePath.indexOf(packageName);
                 String className = filePath.substring(i, filePath.length() - 6);
-                //根据类名加载class对象
-                Class aClass = ClassUtils.forName(className);
-                if (aClass != null) {
-                    classes.add(aClass);
+                //不是一个内部类
+                boolean notInnerClass = className.indexOf("$") == -1;
+                if (notInnerClass) {
+                    //根据类名加载class对象
+                    Class aClass = ClassUtils.forName(className);
+                    if (aClass != null) {
+                        classes.add(aClass);
+                    }
                 }
             }
         }
     }
 
     /**
-     * 在jar文件中递归找出该文件夹中在package中的class
+     * 在jar文件中找出该文件夹中在package中的class
      *
      * @param packageName
      * @param filePath
@@ -244,6 +249,5 @@ public class ClassUtils {
                 }
             }
         }
-
     }
 }

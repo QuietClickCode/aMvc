@@ -77,7 +77,7 @@ public class Application {
         //应用配置
         JSONObject configJson = JSONObject.parseObject(config);
 
-        //TODO:生成对象的工厂类（当先默认为每次都new一个新的对象）
+        //TODO:生成对象的工厂类（先默认为每次都new一个新的对象）
         this.objectFactory = new AlwaysNewObjectFactory();
         //TODO:不同的入参名称获取类（当前默认为asm）
         urlMethodMappingFactory.setParamNameGetter(new AsmParamNameGetter());

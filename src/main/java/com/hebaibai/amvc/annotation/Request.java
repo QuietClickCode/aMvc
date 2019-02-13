@@ -5,11 +5,7 @@ import com.hebaibai.amvc.RequestType;
 import java.lang.annotation.*;
 
 /**
- * 添加在class上：
  * 表示这个类中的，添加了@Request注解的method被映射为一个http地址。
- * <p>
- * 添加在method：
- * 表示这个method被映射为一个http地址。
  *
  * @author hjx
  */
