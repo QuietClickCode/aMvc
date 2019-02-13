@@ -40,7 +40,7 @@ public class ClassUtils {
     /**
      * java 基本类型
      */
-    public static List<Class> JAVA_BASE_TYPE_LIST = new ArrayList<>();
+    private static List<Class> JAVA_BASE_TYPE_LIST = new ArrayList<>();
 
     public final static Class INT_CLASS = int.class;
     public final static Class LONG_CLASS = long.class;
@@ -196,8 +196,8 @@ public class ClassUtils {
         }
         if (targetFile.isDirectory()) {
             File[] files = targetFile.listFiles();
-            for (File file : files) {
-                String path = file.getPath();
+            for (int i = 0; i < files.length; i++) {
+                String path = files[i].getPath();
                 getClassByFilePath(packageName, path, classes);
             }
         } else {
