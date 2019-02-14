@@ -37,7 +37,7 @@ public class MethodParamNameClassVisitor extends ClassVisitor {
         //如果是相同的方法, 执行取参数名称的操作
         if (sameMethod) {
             MethodParamNameMethodVisitor paramNameMethodVisitor = new MethodParamNameMethodVisitor(
-                    Opcodes.ASM4, visitMethod
+                    Opcodes.ASM7, visitMethod
             );
             paramNameMethodVisitor.paramNames = this.paramNames;
             paramNameMethodVisitor.paramLength = this.patamTypes.length;
@@ -85,7 +85,7 @@ public class MethodParamNameClassVisitor extends ClassVisitor {
             @NonNull String methodName,
             @NonNull Class[] patamTypes
     ) {
-        super(Opcodes.ASM4);
+        super(Opcodes.ASM7);
         this.paramNames = paramNames;
         this.methodName = methodName;
         this.patamTypes = patamTypes;
