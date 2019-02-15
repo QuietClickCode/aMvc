@@ -62,7 +62,7 @@ public class MethodValueGetter {
             ValueConverter valueConverter = ValueConverterFactory.getValueConverter(valueType);
             Object converter = null;
             if (strValues.length == 1) {
-                converter = valueConverter.converter(strValues[i], valueType);
+                converter = valueConverter.converter(strValues[0], valueType);
             } else {
                 converter = valueConverter.converter(strValues, valueType);
             }
