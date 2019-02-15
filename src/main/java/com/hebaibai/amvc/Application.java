@@ -7,12 +7,14 @@ import com.hebaibai.amvc.objectfactory.AlwaysNewObjectFactory;
 import com.hebaibai.amvc.objectfactory.ObjectFactory;
 import com.hebaibai.amvc.utils.Assert;
 import com.hebaibai.amvc.utils.ClassUtils;
+import com.hebaibai.amvc.utils.UrlUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -89,7 +91,6 @@ public class Application {
         String config = new String(bytes, "utf-8");
         //应用配置
         JSONObject configJson = JSONObject.parseObject(config);
-
         //TODO:生成对象的工厂类（先默认为每次都new一个新的对象）
         this.objectFactory = new AlwaysNewObjectFactory();
         //TODO:不同的入参名称获取类（当前默认为asm）
@@ -102,28 +103,6 @@ public class Application {
         if (annotationSupport) {
             addApplicationUrlMappingByAnnotationConfig(configJson);
         }
-    }
-
-    /**
-     * 获取Url的描述
-     *
-     * @param requestType
-     * @param url
-     * @return
-     */
-    protected String getUrlDescribe(RequestType requestType, @NonNull String url) {
-        return requestType.name() + ":" + url;
-    }
-
-    /**
-     * 根据url描述获取 UrlMethodMapping
-     *
-     * @param urlDescribe
-     * @return
-     */
-    protected UrlMethodMapping getUrlMethodMapping(@NonNull String urlDescribe) {
-        UrlMethodMapping urlMethodMapping = applicationUrlMapping.get(urlDescribe);
-        return urlMethodMapping;
     }
 
     /**
@@ -176,9 +155,21 @@ public class Application {
         RequestType[] requestTypes = urlMethodMapping.getRequestTypes();
         String url = urlMethodMapping.getUrl();
         for (RequestType requestType : requestTypes) {
-            String urlDescribe = getUrlDescribe(requestType, url);
+            String urlDescribe = UrlUtils.getUrlDescribe(requestType, url);
             if (applicationUrlMapping.containsKey(urlDescribe)) {
                 throw new UnsupportedOperationException(urlDescribe + "已经存在！");
+            }
+            for (Map.Entry<String, UrlMethodMapping> mappingEntry : applicationUrlMapping.entrySet()) {
+                UrlMethodMapping mapping = mappingEntry.getValue();
+                String mappingUrl = mapping.getUrl();
+                for (RequestType type : mapping.getRequestTypes()) {
+                    if (urlMethodMapping == mapping) {
+                        continue;
+                    }
+                    String mappingUrlDescribe = UrlUtils.getUrlDescribe(type, mappingUrl);
+                    boolean matchesUrl = UrlUtils.matchesUrl(urlDescribe, mappingUrlDescribe);
+                    Assert.isTrue(!matchesUrl, "Request.value() 匹配重复：" + urlDescribe + " to " + mappingUrlDescribe);
+                }
             }
             Method method = urlMethodMapping.getMethod();
             Class aClass = urlMethodMapping.getClass();
@@ -187,4 +178,27 @@ public class Application {
         }
     }
 
+
+    /**
+     * 根据url描述获取 UrlMethodMapping
+     *
+     * @param request
+     * @return
+     */
+    protected UrlMethodMapping getUrlMethodMapping(HttpServletRequest request) {
+        for (Map.Entry<String, UrlMethodMapping> mappingEntry : applicationUrlMapping.entrySet()) {
+            UrlMethodMapping mapping = mappingEntry.getValue();
+            RequestType requestType = UrlUtils.getRequestType(request);
+            boolean matches = UrlUtils.matchesUrl(mapping.getUrl(), request.getPathInfo());
+            if (!matches) {
+                continue;
+            }
+            for (RequestType type : mapping.getRequestTypes()) {
+                if (requestType == type) {
+                    return mapping;
+                }
+            }
+        }
+        return null;
+    }
 }

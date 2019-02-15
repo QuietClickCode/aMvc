@@ -69,14 +69,14 @@ public class UrlMethodMappingFactory {
         if (request == null) {
             return mappings;
         }
-        String basePath = request.value();
+        String basePath = UrlUtils.makeUrl(request.value());
         for (Method classMethod : aClass.getDeclaredMethods()) {
             UrlMethodMapping urlMethodMapping = getUrlMethodMappingListByMethod(classMethod);
             if (urlMethodMapping == null) {
                 continue;
             }
             //将添加在class上的Request中的path作为基础路径
-            String url = UrlUtils.makeUrl(basePath + "/" + urlMethodMapping.getUrl());
+            String url = UrlUtils.makeUrl(basePath + UrlUtils.SLASH + urlMethodMapping.getUrl());
             urlMethodMapping.setUrl(url);
             mappings.add(urlMethodMapping);
         }

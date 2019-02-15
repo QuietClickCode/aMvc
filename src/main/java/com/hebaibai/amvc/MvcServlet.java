@@ -40,10 +40,10 @@ public class MvcServlet extends HttpServlet {
     public void init(ServletConfig config) {
         super.init(config);
         String servletName = config.getServletName();
-        log.info("aMvc init servletName：" + servletName);
+        log.info("【 aMvc " + servletName + " starting 。。。】");
         application = new Application(servletName);
         afterInitMvc(application);
-        log.info("aMvc init finish：" + servletName);
+        log.info("【 aMvc " + servletName + " finish 。。。】");
     }
 
 
@@ -65,16 +65,17 @@ public class MvcServlet extends HttpServlet {
      */
     @SneakyThrows({IOException.class})
     private void doInvoke(HttpServletRequest request, HttpServletResponse response) {
-        RequestType requestType = getRequestType(request.getMethod());
-        String urlDescribe = application.getUrlDescribe(requestType, request.getPathInfo());
-        UrlMethodMapping urlMethodMapping = application.getUrlMethodMapping(urlDescribe);
-        //没有找到对应的mapping
+        //根据请求获取对应的UrlMethodMapping
+        UrlMethodMapping urlMethodMapping = application.getUrlMethodMapping(request);
         if (urlMethodMapping == null) {
             unsupportedMethod(request, response);
             return;
         }
+        //获取请求中的参数
+        MethodValueGetter methodValueGetter = application.getMethodValueGetter();
+        Object[] methodValue = methodValueGetter.getMethodValue(urlMethodMapping, request, response);
         //方法执行结果
-        Object result = invokeMethod(urlMethodMapping, request);
+        Object result = invokeMethod(urlMethodMapping, methodValue);
         //TODO:视图处理，先以JSON形式返回
         response.setHeader("content-type", "application/json;charset=UTF-8");
         PrintWriter writer = response.getWriter();
@@ -86,13 +87,11 @@ public class MvcServlet extends HttpServlet {
      * 反射执行方法
      *
      * @param urlMethodMapping
-     * @param request
+     * @param methodValue
      * @return
      */
     @SneakyThrows({IllegalAccessException.class, InvocationTargetException.class})
-    private Object invokeMethod(UrlMethodMapping urlMethodMapping, HttpServletRequest request) {
-        MethodValueGetter methodValueGetter = application.getMethodValueGetter();
-        Object[] methodValue = methodValueGetter.getMethodValue(urlMethodMapping.getParamClasses(), urlMethodMapping.getParamNames(), request);
+    private Object invokeMethod(UrlMethodMapping urlMethodMapping, Object[] methodValue) {
         Method method = urlMethodMapping.getMethod();
         Class objectClass = urlMethodMapping.getObjectClass();
         //通过对象工厂实例化objectClass
@@ -101,27 +100,6 @@ public class MvcServlet extends HttpServlet {
         return method.invoke(object, methodValue);
     }
 
-    /**
-     * 根据http请求方式获取RequestType
-     *
-     * @param requestMethod
-     * @return
-     */
-    private RequestType getRequestType(String requestMethod) {
-        if (requestMethod.equalsIgnoreCase(RequestType.GET.name())) {
-            return RequestType.GET;
-        }
-        if (requestMethod.equalsIgnoreCase(RequestType.POST.name())) {
-            return RequestType.POST;
-        }
-        if (requestMethod.equalsIgnoreCase(RequestType.PUT.name())) {
-            return RequestType.PUT;
-        }
-        if (requestMethod.equalsIgnoreCase(RequestType.DELETE.name())) {
-            return RequestType.DELETE;
-        }
-        throw new UnsupportedOperationException("请求方式不支持：" + requestMethod);
-    }
 
     /**
      * 不支持的请求方式
@@ -140,6 +118,7 @@ public class MvcServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, errorMsg);
         }
     }
+
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
